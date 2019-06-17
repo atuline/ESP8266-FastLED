@@ -1,6 +1,6 @@
 # ESP8266 FastLED Demos
 
-
+I'm now converting some of my FastLED demos over to use MQTT message in order to have various parameters controlled by an Android phone running an MQTT broker and client.
 
 ## MQTT Basic Examples
 
