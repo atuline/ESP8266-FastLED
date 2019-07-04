@@ -49,6 +49,8 @@ const char* mqttServer = "192.168.43.1";
 const int mqttPort = 1883;
 const char* mqttUser = "wmabzsy";
 const char* mqttPassword = "GT8Do3vkgWP5";
+const char* mqttID ="12";                                   // Must be UNIQUE for EVERY display!!!
+
 
 const char *prefixtopic = "LED/";                            // We'll use the prefix to describe a 'family' of devices.
 const char *subscribetopic[] = {"LED1", "LED2", "LED3"};     // Topics that we will subscribe to within that family.
@@ -58,10 +60,6 @@ char message_buff[100];
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-bool wifistart = false;                                       // State variables for asynchronous wifi & mqtt connection.
-bool mqttconn = false;
-bool wifimqtt = false;
-
 
 
 void setup() {
@@ -69,6 +67,9 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(BUILTIN_LED, OUTPUT);
+
+  client.setServer(mqttServer, mqttPort);                                                 // Initialize MQTT service. Just once is required.
+  client.setCallback(callback);                                                           // Define the callback service to check with the server. Just once is required.
   
 } // setup()
 
@@ -107,38 +108,53 @@ void callback(char *topic, byte *payload, unsigned int length) {
 
 
 
-void networking() {                                                                         // Asynchronous network connect routine with MQTT connect and re-connect. It actually seems to work.
+void networking() {                                                                         // Asynchronous network connect routine with MQTT connect and re-connect. The trick is to make it re-connect when something breaks.
+
+  static long lastReconnectAttempt = 0;
+  static bool wifistart = false;                                                            // State variables for asynchronous wifi & mqtt connection.
+  static bool wificonn = false;
 
   if (wifistart == false) {
-    WiFi.begin(ssid, password);                                                             // Initialize WiFi on the ESP8266
+    WiFi.begin(ssid, password);                                                             // Initialize WiFi on the ESP8266. We don't care about actual status.
     wifistart = true;
   }
 
-  if (WiFi.status() == WL_CONNECTED && mqttconn == false) {
-    Serial.print("IP address:\t"); Serial.println(WiFi.localIP());   
-    client.setServer(mqttServer, mqttPort);                                                 // Initialize MQTT service.
-    client.setCallback(callback);                                                           // Define the callback service to check with the server.
-    client.connect("ESP8266Client", mqttUser, mqttPassword );
-    mqttconn = true;
+  if (WiFi.status() == WL_CONNECTED && wificonn == false) {
+    Serial.print("IP address:\t"); Serial.println(WiFi.localIP());                          // This should just print once.
+    wificonn = true;    
   }
 
-  if (client.connected() && wifimqtt == false) {                                            // Now that we're connected. Let's subscribe to some topics.
+  if (WiFi.status() != WL_CONNECTED) wificonn = false;                                      // Toast the connection if we've lost it.
+
+  if (!client.connected() && WiFi.status() == WL_CONNECTED) {                               // Non-blocking re-connect to the broker. This was challenging.
+    if (millis() - lastReconnectAttempt > 5000) {
+      lastReconnectAttempt = millis();
+      if (reconnect()) {                                                                    // Attempt to reconnect.
+        lastReconnectAttempt = 0;
+      }
+    }
+  } else {
+    client.loop();
+  }
+
+} // networking()
+
+
+
+boolean reconnect() {                                                                       // Here is where we actually connect/re-connect to the MQTT broker and subscribe to our topics.
+  
+  if (client.connect(mqttID, mqttUser, mqttPassword )) {
+    
     Serial.println("MQTT connected.");  
-
 //    client.publish("LED1", "Hello from ESP8266!");                                        // Sends topic and payload to the MQTT broker.
-
     for (int i = 0; i < (sizeof(subscribetopic)/sizeof(int)); i++) {                        // Subscribes to list of topics from the MQTT broker. This whole loop is well above my pay grade.
       String mypref =  prefixtopic;                                                         // But first, we need to get our prefix.
       mypref.concat(subscribetopic[i]);                                                     // Concatenate prefix and the topic together with a little bit of pfm. 
       client.subscribe((char *) mypref.c_str());                                            // Now, let's subscribe to that concatenated and converted mess.
       Serial.println(mypref);                                                               // Let's print out each subscribed topic, just to be safe.
     }
-    wifimqtt = true;
   } // if client.connected()
 
-  if (!client.connected() & wifimqtt == true) {                                             // We've lost connectivity to the broker, so let's reconnect.
-    mqttconn = false;                                                                       // We've lost connectivity, so let's reset our flags back to 'not connected'.
-    wifimqtt = false;                                                                       // And the next time we hit networking() in the loop, we'll try and re-connect.
-  }
-
-} // networking()
+  return client.connected();
+  
+} // reconnect()

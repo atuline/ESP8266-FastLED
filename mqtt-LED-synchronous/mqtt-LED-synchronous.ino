@@ -55,6 +55,8 @@ const char* mqttServer = "192.168.43.1";
 const int mqttPort = 1883;
 const char* mqttUser = "wmabzsy";
 const char* mqttPassword = "GT8Do3vkgWP5";
+const char* mqttID ="12";                                         // Must be UNIQUE for EVERY display!!!
+
 
 char message_buff[100];
  
@@ -66,7 +68,8 @@ PubSubClient client(espClient);
 void setup() {
  
   Serial.begin(115200);
-
+  delay(1000);
+  
   pinMode(BUILTIN_LED, OUTPUT);
  
   WiFi.begin(ssid, password);                                                               // Initialize WiFi on the ESP8266
@@ -85,7 +88,7 @@ void setup() {
  
   while (!client.connected()) {                                                             // We will eventually want to move this so that if we lose connection, we can re-run this.
     Serial.println("Connecting to MQTT...");
-    if (client.connect("ESP8266Client", mqttUser, mqttPassword )) {                         // Connect to the server with credentials and test for that.
+    if (client.connect(mqttID, mqttUser, mqttPassword )) {                         // Connect to the server with credentials and test for that.
       Serial.println("connected");  
     } else {
       Serial.print("failed with state ");
