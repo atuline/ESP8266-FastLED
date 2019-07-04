@@ -78,8 +78,6 @@ void setup() {
 void loop() {
 
   networking();                                                                             // We need to run this continually in case we disconnect from the MQTT broker.
-  
-  client.loop();                                                                            // You need to run this in order to allow the client to process incoming messsages, to publish message and to refresh the connection.
 
 } // loop()
 
