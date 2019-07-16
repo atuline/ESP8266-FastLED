@@ -10,6 +10,10 @@ If you're new to MQTT, have a look at my postings at:
 * [http://tuline.com/some-esp8266-and-mqtt-examples/](http://tuline.com/some-esp8266-and-mqtt-examples/)
 * [http://tuline.com/iot-mqtt-panel-pro-prefixes/](http://tuline.com/some-esp8266-and-mqtt-examples/)
 
+Youtube demo:
+
+* [https://youtu.be/j8ajNRYaXZ8](https://youtu.be/j8ajNRYaXZ8)
+
 They go through the steps on how to get MQTT up and running with an Android phone, provide information on these
 examples, and finally discuss how to configure device prefixes.
 
