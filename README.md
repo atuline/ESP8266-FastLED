@@ -1,4 +1,4 @@
-# ESP8266 FastLED Demos
+# ESP8266 FastLED MQTT Demos
 
 I'm now converting some of my FastLED demos over to use MQTT messaging in order to have various parameters controlled by an Android phone running an MQTT broker and client.
 
@@ -27,15 +27,15 @@ Also, experiment with these in the following order:
 * mqtt-firexy				- Our first FastLED/mqtt hybrid that supports fire2012withpalette. If there's no connectivity, you still have fire.
 * mqtt-sine					- Look at all the parameters you can change just for a single sine wave, including variable phase change around a variable center.
 
-## mqtt-mesh
+## mqtt-mesh (published)
 
-An almost straight migration of notamesh. Am going to re-think this for mqtt-sync Should be shortly.
+An almost straight migration of notamesh, which features a 'delay' across multiple devices. Looks like they're in sync. Am going to re-think this for mqtt-sync.
 
-## mqtt-sound
+## mqtt-sound (not published)
 
 An almost straight migration of notasound. Will then re-think this for an unnamed sketch and apply much more programmable sound reaction, possibly some form of lighting ADSR.
 
-## mqtt-sync
+## mqtt-sync (not published)
 
 Sending synchronization to multiple ESP's, including delays, and then batch processing display sequences. Need to do a few proof of concept sketches first.
 
