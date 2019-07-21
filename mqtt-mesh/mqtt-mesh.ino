@@ -58,6 +58,10 @@
  * 
  * Start focusing on ESP8266 and later ESP32 functionality. This is  the end of the road for AVR's.
  * 
+ * 1.11 Update
+ * 
+ * Change delay and length to only work if strand is selected.
+ * 
  * 1.10 Update
  * 
  * Convert to MQTT on an ESP8266. Remove IR support.
@@ -223,8 +227,8 @@
  * Stop palette rotation            Button      butn    8       Stop palette rotation at current palette. Save current palette to EEPROM.
  * Select palette                   Buttons     butn    9,10    Stop palette rotation and select previous palette or next palette immediately. Save palette to EEPROM.
  * Enable palette rotation          Button      butn    11      Enable palette transitioning every 5 seconds.
- * Strand length                    Slider      slen    0-50    Decrease/increase strand length and save to EEPROM. The # of LED's programmed are white.
- * Mesh delay                       Slider      mdel    0-10    Decrease/increase mesh delay by 100ms and save to EEPROM.  The # of LED's programmed are white.
+ * Strand length                    Slider      slen    0-50    Decrease/increase strand length and save to EEPROM, only if strand is selected.. The # of LED's programmed are white.
+ * Mesh delay                       Slider      mdel    0-10    Decrease/increase mesh delay by 100ms and save to EEPROM, only if strand is selected..  The # of LED's programmed are white.
  * 
  * 
  * Sample message:
@@ -248,7 +252,7 @@
 #define qsubd(x, b)  ((x>b)?wavebright:0)                     // A digital unsigned subtraction macro. if result <0, then => 0. Otherwise, take on fixed value.
 #define qsuba(x, b)  ((x>b)?x-b:0)                            // Unsigned subtraction macro. if result <0, then => 0.
 
-#define MQTTMESH_VERSION 110                                  // Current version of this program.
+#define MQTTMESH_VERSION 111                                  // Current version of this program.
 
 #include "ESP8266WiFi.h"                                      // Should be included when you install the ESP8266.
 #include "PubSubClient.h"                                     // https://github.com/knolleary/pubsubclient
@@ -291,7 +295,7 @@ const char* mqttServer = "192.168.43.1";
 const int mqttPort = 1883;
 const char* mqttUser = "wmabzsy";
 const char* mqttPassword = "GT8Do3vkgWP5";
-const char* mqttID ="11";                                       // Must be numeric AND unique for EVERY display that is running at the same time and should match the int of STRANDID. 
+const char* mqttID ="41";                                       // Must be numeric AND unique for EVERY display that is running at the same time and should match the int of STRANDID. 
 
 // You can use this to serialize your device so that you can support more than 1 of these at the same time.
 const int STRANDID = atoi(mqttID);                              // I match this with my mqttID and make them numeric.
@@ -316,7 +320,7 @@ uint8_t IRCommand;                                            // An 8 bit numeri
 
 // Fixed definitions cannot change on the fly.
 #define LED_DT D5                                             // Serial data pin for all strands. I use pin 12 on a Nano and D5 on the ESP8266.
-#define LED_CK 11                                             // Serial clock pin for WS2801 or APA102
+#define LED_CK D4                                             // Serial clock pin for WS2801 or APA102
 #define COLOR_ORDER GRB                                       // It's GRB for WS2812, BGR for APA102
 #define LED_TYPE WS2812                                       // Alternatively WS2801, or WS2812
 #define MAX_LEDS 60                                           // Maximum number of LED's defined (at compile time). 
@@ -355,7 +359,7 @@ uint8_t currentPatternIndex = 0;                               // Index number o
 #define LSAT      12                                          // EEPROM location of lamp saturation.
 #define DEMO      13                                          // EEPROM location of demo mode toggle.
 
-#define INITVAL   0x57                                        // If this is the value in ISINIT, then the Arduino has been initialized. Change to completely reset your Arduino.
+#define INITVAL   0x55                                        // If this is the value in ISINIT, then the Arduino has been initialized. Change to completely reset your Arduino.
 
 #define INITBRIT 128                                          // Initial max_bright.
 #define INITDEL  0                                            // Starting mesh delay value of the strand in milliseconds.
@@ -685,7 +689,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       Serial.print(F("Lampsat: ")); Serial.println(lampsat);
    }    
 
-     if (strcmp(topic, "mesh/mdel") == 0) {                                                   // Mesh delay.
+     if (strcmp(topic, "mesh/mdel") == 0 && mydevice == STRANDID) {       // Mesh delay.
       meshdelay = msgString.toInt();
       demorun = 0;                                                        // First we disable the demo mode.
       ledMode = 0;                                                        // And set to mode 0 (black).
@@ -695,7 +699,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       Serial.print(F("Mesh: ")); Serial.print(meshdelay*100); Serial.println(F("ms delay.")); 
    } 
 
-     if (strcmp(topic, "mesh/slen") == 0) {                                                   // Strand length.
+     if (strcmp(topic, "mesh/slen") == 0 && mydevice == STRANDID) {       // Strand length.
       NUM_LEDS = msgString.toInt();
       demorun = 0;
       fill_solid(leds,MAX_LEDS, CRGB::Black);                             // Let's make it black manually.
@@ -728,9 +732,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
           default:  break;
       } // switch
     } // if strcmp
-
   } // if mydevice
-  
+
 } // callback()
 
 

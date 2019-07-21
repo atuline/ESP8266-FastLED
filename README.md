@@ -39,5 +39,7 @@ An almost straight migration of notasound. Will then re-think this for an unname
 
 Sending synchronization to multiple ESP's, including delays, and then batch processing display sequences. Need to do a few proof of concept sketches first.
 
-## Others TBD
+## Others TBD such as
+
+* OTA updates to demo parameters (not the program, but the parameters for it) using MQTT
 
