@@ -1,5 +1,12 @@
 # ESP8266 FastLED MQTT Demos
 
+Update: April, 2020
+
+## I'm no longer supporting MQTT directly, but am now developing routines around WLED.
+
+
+## Introduction
+
 I'm now converting some of my FastLED demos over to use MQTT messaging in order to have various parameters controlled by an Android phone running an MQTT broker and client.
 
 ## MQTT Basic Examples
